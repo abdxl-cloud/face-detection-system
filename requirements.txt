@@ -1,0 +1,28 @@
+# FastAPI and Web Framework
+fastapi
+uvicorn[standard]
+pydantic
+python-multipart
+
+# Image Processing
+opencv-python
+numpy
+Pillow
+
+# YOLO Models
+ultralytics
+torch
+torchvision
+
+# Clarifai API
+clarifai-grpc
+
+# Configuration and Utils
+pyyaml
+requests
+
+# Logging
+python-json-logger
+
+# Optional but recommended
+scipy

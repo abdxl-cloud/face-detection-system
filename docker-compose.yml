@@ -1,0 +1,52 @@
+version: '3.8'
+
+# Development configuration with hot reload
+services:
+  clarifai-autocollect-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: clarifai-face-detector-dev
+    image: clarifai-autocollect:dev
+    
+    ports:
+      - "8000:8000"
+    
+    volumes:
+      # Mount dataset directory
+      - ./face_dataset:/app/face_dataset
+      
+      # Mount config for live editing
+      - ./clarifai_config.yaml:/app/clarifai_config.yaml
+      
+      # Note: models are baked into image, but you can override:
+      # - ./models:/app/models:ro
+      
+      # Mount source code for hot reload
+      - ./main.py:/app/main.py
+      - ./windshield_detector.py:/app/windshield_detector.py
+      - ./clarifai_client.py:/app/clarifai_client.py
+      - ./dataset_manager.py:/app/dataset_manager.py
+      - ./utils.py:/app/utils.py
+    
+    environment:
+      - PYTHONUNBUFFERED=1
+      - DEBUG=1
+      
+    # Override default command with reload enabled
+    command: uvicorn clarifai_main:app --host 0.0.0.0 --port 8000 --reload
+    
+    restart: unless-stopped
+    
+    networks:
+      - clarifai-network-dev
+    
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  clarifai-network-dev:
+    driver: bridge

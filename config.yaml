@@ -1,0 +1,69 @@
+# Clarifai Auto-Collect with Windshield Detection Configuration
+
+# Clarifai API Configuration
+clarifai:
+  api_key: "34784992c97641599ac676e194b2256d"
+  user_id: "clarifai"
+  app_id: "main"
+  model_id: "face-detection"
+  version_id: "6dc7e46bc9124c5c8824be4822abe105"
+
+# Windshield Detection Models (YOLO)
+# Add or remove models as needed - system will use all enabled models
+windshield_models:
+  - name: "model_1"
+    enabled: true
+    model_path: "models/windshield_model_1.pt"
+    model_type: "yolov8"  # yolov8, yolov11, yolov12
+    conf_threshold: 0.35
+    iou_threshold: 0.45
+    device: "cuda"  # cuda or cpu
+    weight: 1.0  # Used in ensemble voting
+    
+  - name: "model_2"
+    enabled: false
+    model_path: "models/windshield_model_2.pt"
+    model_type: "yolov11"
+    conf_threshold: 0.4
+    iou_threshold: 0.45
+    device: "cuda"
+    weight: 1.2
+    
+  - name: "model_3"
+    enabled: false
+    model_path: "models/windshield_model_3.pt"
+    model_type: "yolov12"
+    conf_threshold: 0.35
+    iou_threshold: 0.45
+    device: "cuda"
+    weight: 1.0
+
+# Ensemble Configuration for Windshield Detection
+ensemble:
+  method: "union"  # Options: union, nms, weighted, best_confidence
+  nms_iou_threshold: 0.5
+  min_models_agreement: 1  # Minimum models that must detect for acceptance
+  confidence_threshold: 0.3  # Minimum confidence for final result
+
+# Dataset Configuration
+dataset:
+  output_dir: "face_dataset"
+  train_val_split: 0.8  # 80% train, 20% val
+  
+# Storage Directories
+storage:
+  images_dir: "face_dataset/images"
+  labels_dir: "face_dataset/labels"
+  raw_images_dir: "face_dataset/raw_images"
+  windshield_crops_dir: "face_dataset/windshield_crops"
+  visualizations_dir: "face_dataset/visualizations"
+
+# Server Configuration
+server:
+  host: "0.0.0.0"
+  port: 8000
+  
+# Processing Configuration
+processing:
+  batch_delay: 0.5  # Seconds between batch items
+  max_image_size_mb: 10
