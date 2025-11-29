@@ -14,29 +14,21 @@ windshield_models:
   - name: "model_1"
     enabled: true
     model_path: "models/windshield_model_1.pt"
-    model_type: "yolov8"  # yolov8, yolov11, yolov12
+    model_type: "yolov12"  # yolov8, yolov11, yolov12
     conf_threshold: 0.35
     iou_threshold: 0.45
     device: "cuda"  # cuda or cpu
     weight: 1.0  # Used in ensemble voting
     
-  - name: "model_2"
-    enabled: false
-    model_path: "models/windshield_model_2.pt"
-    model_type: "yolov11"
-    conf_threshold: 0.4
-    iou_threshold: 0.45
-    device: "cuda"
-    weight: 1.2
+  # - name: "model_2"
+  #   enabled: false
+  #   model_path: "models/windshield_model_2.pt"
+  #   model_type: "yolov11"
+  #   conf_threshold: 0.4
+  #   iou_threshold: 0.45
+  #   device: "cuda"
+  #   weight: 1.2
     
-  - name: "model_3"
-    enabled: false
-    model_path: "models/windshield_model_3.pt"
-    model_type: "yolov12"
-    conf_threshold: 0.35
-    iou_threshold: 0.45
-    device: "cuda"
-    weight: 1.0
 
 # Ensemble Configuration for Windshield Detection
 ensemble:
