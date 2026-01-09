@@ -1,20 +1,10 @@
-# FastAPI and Web Framework
+git+https://github.com/sunsmarterjie/yolov12.git
 fastapi
 uvicorn[standard]
-pydantic
 python-multipart
+huggingface_hub
 
-# Image Processing
-opencv-python
-numpy
-Pillow
 
-# YOLO Models
-ultralytics
-torch
-torchvision
-
-# Clarifai API
 clarifai-grpc
 
 # Configuration and Utils

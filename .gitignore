@@ -30,3 +30,4 @@ build/
 *.egg-info/
 .eggs/
 .cache/
+face_dataset/
