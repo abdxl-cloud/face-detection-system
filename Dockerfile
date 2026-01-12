@@ -24,6 +24,11 @@ RUN apt-get update && apt-get install -y \
 # Stage 2: Build stage for installing Python packages
 FROM base AS builder
 
+# Install build-only system deps (git required for VCS pip installs)
+RUN apt-get update && apt-get install -y \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
 # Create virtual environment
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
