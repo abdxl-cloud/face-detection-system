@@ -6,7 +6,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: clarifai-face-detector-dev
+    container_name: face-detection-system
     image: abduldaro/face-detection-system:latest
     
     ports:
@@ -17,7 +17,7 @@ services:
       - ./face_dataset:/app/face_dataset
       
       # Mount config for live editing
-      - ./clarifai_config.yaml:/app/clarifai_config.yaml
+      - ./config.yaml:/app/config.yaml
       
       # Note: models are baked into image, but you can override:
       # - ./models:/app/models:ro
@@ -27,6 +27,7 @@ services:
       - ./windshield_detector.py:/app/windshield_detector.py
       - ./clarifai_client.py:/app/clarifai_client.py
       - ./dataset_manager.py:/app/dataset_manager.py
+      - ./media_manager_client.py:/app/media_manager_client.py
       - ./utils.py:/app/utils.py
     
     environment:
