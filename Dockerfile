@@ -2,7 +2,7 @@
 # Multi-stage build for optimized image size
 
 # Stage 1: Base image with Python and system dependencies
-FROM python:3.10-slim as base
+FROM python:3.10-slim AS base
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1 \
@@ -12,7 +12,7 @@ ENV PYTHONUNBUFFERED=1 \
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
-    libgl1-mesa-glx \
+    libgl1 \
     libglib2.0-0 \
     libsm6 \
     libxext6 \
@@ -22,7 +22,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Stage 2: Build stage for installing Python packages
-FROM base as builder
+FROM base AS builder
 
 # Create virtual environment
 RUN python -m venv /opt/venv
@@ -36,7 +36,7 @@ RUN pip install --upgrade pip && \
     pip install -r requirements.txt
 
 # Stage 3: Final runtime image
-FROM base as runtime
+FROM base AS runtime
 
 # Copy virtual environment from builder
 COPY --from=builder /opt/venv /opt/venv
