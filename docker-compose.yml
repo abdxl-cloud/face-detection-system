@@ -2,12 +2,12 @@ version: '3.8'
 
 # Development configuration with hot reload
 services:
-  clarifai-autocollect-dev:
+  face-detection-system:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: clarifai-face-detector-dev
-    image: clarifai-autocollect:dev
+    image: abduldaro/face-detection-system:latest
     
     ports:
       - "8000:8000"
