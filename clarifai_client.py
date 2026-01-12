@@ -41,7 +41,7 @@ class ClarifaiFaceDetector:
         if not self.api_key:
             raise ValueError("Clarifai API key not configured")
         
-        logger.info(f"✓ Clarifai face detector initialized (model: {self.model_id})")
+        logger.info(f" Clarifai face detector initialized (model: {self.model_id})")
     
     def detect_faces(self, image_bytes: bytes) -> Tuple[List[Dict], float]:
         """

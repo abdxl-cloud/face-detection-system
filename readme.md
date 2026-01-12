@@ -1,97 +1,95 @@
-# Clarifai Auto-Collect with Multi-Model Windshield Detection
+# Face Detection API
 
-A FastAPI application that automatically collects face detection training data by:
-1. Detecting windshields using **multiple YOLO models** (ensemble)
-2. Cropping windshield regions
-3. Detecting faces using **Clarifai API**
-4. Automatically saving to YOLO-format dataset
+Automatically detect and extract faces from vehicle images using multi-model windshield detection and Clarifai face recognition.
 
-## 🎯 Features
+## Features
 
-- ✅ **Multi-Model YOLO Windshield Detection** - Use 1-N models with ensemble
-- ✅ **4 Ensemble Methods** - Union, NMS, Weighted, Best Confidence
-- ✅ **Clarifai Face Detection** - High-accuracy face detection
-- ✅ **Automatic Dataset Creation** - No manual work required
-- ✅ **YOLO Format Export** - Ready for training
-- ✅ **Batch Processing** - Handle multiple images
-- ✅ **Visualizations** - See detections with bounding boxes
+- **🚗 Windshield Detection**: Multi-YOLO model ensemble for accurate windshield localization
+- **👤 Face Detection**: Clarifai API-powered face detection within windshields
+- **✂️ Individual Face Crops**: Each detected face is cropped and uploaded separately
+- **☁️ Media Manager Integration**: Images stored in external media manager
+- **📦 Batch Processing**: Process multiple URLs in a single request
+- **⚡ Optimized**: URL-based requests avoid re-uploading original images
 
-## 📁 File Structure
+## Quick Start
 
-```
-.
-├── clarifai_config.yaml      # Configuration file
-├── clarifai_main.py           # Main FastAPI application
-├── windshield_detector.py     # Multi-model YOLO windshield detection
-├── clarifai_client.py         # Clarifai API client
-├── dataset_manager.py         # Dataset management
-├── utils.py                   # Helper functions
-└── README.md                  # This file
-```
-
-## 🚀 Installation
-
-### 1. Install Dependencies
+### Installation
 
 ```bash
-pip install fastapi uvicorn pydantic
-pip install opencv-python numpy pyyaml requests
-pip install ultralytics  # For YOLO
-pip install clarifai-grpc  # For Clarifai API
+# Clone the repository
+git clone <repository-url>
+cd face-detection-system
+
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
 ```
 
-### 2. Configure
+### Configuration
 
-Edit `clarifai_config.yaml`:
+Edit `config.yaml` to configure:
 
 ```yaml
-# Add your Clarifai API key
-clarifai:
-  api_key: "YOUR_API_KEY_HERE"
+# Media Manager
+media_manager:
+  enabled: true
+  base_url: "https://your-media-manager.ngrok.app"
+  timeout: 30
 
-# Configure windshield detection models
+# Clarifai API
+clarifai:
+  api_key: "your-clarifai-api-key"
+
+# Windshield Detection Models
 windshield_models:
   - name: "model_1"
     enabled: true
-    model_path: "models/windshield_model_1.pt"
+    model_path: "models/windshield_model.pt"
     conf_threshold: 0.35
-    weight: 1.0
-    
-  - name: "model_2"
-    enabled: true  # Enable/disable as needed
-    model_path: "models/windshield_model_2.pt"
-    conf_threshold: 0.4
-    weight: 1.2
 ```
 
-### 3. Place YOLO Models
-
-Put your YOLO windshield detection models in the `models/` directory:
+### Running the Server
 
 ```bash
-mkdir models
-# Copy your models
-cp /path/to/windshield_model.pt models/windshield_model_1.pt
+python main.py
 ```
 
-## 🏃 Running
+Server starts at `http://localhost:8000`
 
-```bash
-python clarifai_main.py
-```
+## API Endpoints
 
-Server starts at: `http://localhost:8000`
+### Face Detection
 
-## 📖 API Usage
-
-### Upload Image
+#### POST `/upload`
+Upload an image file and extract face crops.
 
 ```bash
 curl -X POST "http://localhost:8000/upload" \
-  -F "file=@car_photo.jpg"
+  -F "file=@car.jpg"
 ```
 
-### Add from URL
+**Response:**
+```json
+{
+  "status": "success",
+  "request_id": "face_20260109_120530_uploaded",
+  "faces": [
+    {
+      "face_id": 0,
+      "image_url": "https://media-manager.com/uploads/face_0.jpg",
+      "bbox": {"x": 145, "y": 89, "width": 180, "height": 240}
+    }
+  ],
+  "original_image_url": "https://media-manager.com/uploads/raw.jpg",
+  "total_faces": 1
+}
+```
+
+#### POST `/add-url`
+Process an image from a URL.
 
 ```bash
 curl -X POST "http://localhost:8000/add-url" \
@@ -99,7 +97,10 @@ curl -X POST "http://localhost:8000/add-url" \
   -d '{"url": "https://example.com/car.jpg"}'
 ```
 
-### Batch URLs
+**Efficiency Note:** Original image URL is stored directly (not re-uploaded), saving bandwidth.
+
+#### POST `/batch-urls`
+Process multiple images in one request.
 
 ```bash
 curl -X POST "http://localhost:8000/batch-urls" \
@@ -112,210 +113,231 @@ curl -X POST "http://localhost:8000/batch-urls" \
   }'
 ```
 
-### Check Statistics
+### System Information
+
+#### GET `/health`
+System health check.
 
 ```bash
-curl http://localhost:8000/stats
+curl "http://localhost:8000/health"
 ```
 
-### View Model Info
+#### GET `/stats`
+Dataset statistics.
 
 ```bash
-curl http://localhost:8000/models
+curl "http://localhost:8000/stats"
 ```
 
-### Download Dataset
+#### GET `/models`
+Information about loaded YOLO models.
 
 ```bash
-curl http://localhost:8000/download -o dataset.zip
+curl "http://localhost:8000/models"
 ```
 
-### Clear Dataset
+### Dataset Management
+
+#### GET `/download`
+Download complete dataset as ZIP (local storage only).
 
 ```bash
-curl -X DELETE http://localhost:8000/clear
+curl "http://localhost:8000/download" -o dataset.zip
 ```
 
-## ⚙️ Configuration Options
+#### DELETE `/clear`
+Clear all local dataset data.
 
-### Ensemble Methods
-
-Choose how multiple windshield detections are combined:
-
-```yaml
-ensemble:
-  method: "union"  # Options: union, nms, weighted, best_confidence
+```bash
+curl -X DELETE "http://localhost:8000/clear"
 ```
 
-- **union**: Largest bbox containing all detections
+## Workflow
+
+```
+┌─────────────┐
+│ Input Image │
+└──────┬──────┘
+       │
+       ▼
+┌─────────────────────┐
+│ Windshield Detection│  (Multi-YOLO Ensemble)
+└──────┬──────────────┘
+       │
+       ▼
+┌─────────────────┐
+│ Face Detection  │  (Clarifai API)
+└──────┬──────────┘
+       │
+       ▼
+┌──────────────────┐
+│ Extract Each Face│
+└──────┬───────────┘
+       │
+       ▼
+┌─────────────────────┐
+│ Upload to Media Mgr │
+└──────┬──────────────┘
+       │
+       ▼
+┌────────────────┐
+│ Return Face URLs│
+└────────────────┘
+```
+
+## Architecture
+
+### Components
+
+- **Windshield Detector** (`windshield_detector.py`): Multi-model YOLO ensemble
+- **Face Detector** (`clarifai_client.py`): Clarifai API integration
+- **Dataset Manager** (`dataset_manager.py`): Image storage and organization
+- **Media Manager Client** (`media_manager_client.py`): External storage integration
+
+### Model Ensemble Methods
+
+- **union**: Largest bbox containing all detections (default)
 - **nms**: Non-Maximum Suppression
-- **weighted**: Weighted average based on model weights
-- **best_confidence**: Pick detection with highest confidence
+- **weighted**: Weighted average of detections
+- **best_confidence**: Highest confidence detection
 
-### Model Configuration
+## Response Format
 
-Each model can be configured independently:
-
-```yaml
-windshield_models:
-  - name: "yolov8_model"
-    enabled: true
-    model_path: "models/windshield_v8.pt"
-    model_type: "yolov8"
-    conf_threshold: 0.35
-    iou_threshold: 0.45
-    device: "cuda"  # or "cpu"
-    weight: 1.0  # Used in weighted ensemble
-```
-
-## 📊 Dataset Structure
-
-```
-face_dataset/
-├── images/
-│   ├── train/          # Training windshield crops
-│   └── val/            # Validation windshield crops
-├── labels/
-│   ├── train/          # YOLO format labels
-│   └── val/            # YOLO format labels
-├── raw_images/         # Original full images
-├── windshield_crops/   # All windshield crops
-├── visualizations/     # Annotated images
-├── data.yaml           # YOLO config
-└── stats.json          # Dataset statistics
-```
-
-## 🔄 Workflow
-
-1. **Upload Image** → Full vehicle image uploaded
-2. **Windshield Detection** → All enabled YOLO models detect windshield
-3. **Ensemble** → Detections combined using configured method
-4. **Crop** → Windshield region extracted
-5. **Face Detection** → Clarifai detects faces in crop
-6. **Save** → Everything saved automatically to dataset
-
-## 📈 Training with Dataset
-
-After downloading the dataset:
-
-```bash
-# Unzip
-unzip dataset.zip
-
-# Train with YOLOv8
-yolo task=detect mode=train \
-  model=yolov8n.pt \
-  data=face_dataset/data.yaml \
-  epochs=100 \
-  imgsz=640
-
-# Train with YOLOv11
-yolo task=detect mode=train \
-  model=yolo11n.pt \
-  data=face_dataset/data.yaml \
-  epochs=100
-```
-
-## 🔍 API Endpoints
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/` | GET | Web interface |
-| `/upload` | POST | Upload image file |
-| `/add-url` | POST | Add image from URL |
-| `/batch-urls` | POST | Process multiple URLs |
-| `/stats` | GET | Get dataset statistics |
-| `/models` | GET | Get loaded models info |
-| `/download` | GET | Download dataset ZIP |
-| `/visualize/{filename}` | GET | View visualization |
-| `/clear` | DELETE | Clear all data |
-| `/health` | GET | Health check |
-| `/docs` | GET | Swagger UI |
-
-## 🎛️ Advanced Configuration
-
-### Multiple Models Example
-
-```yaml
-windshield_models:
-  - name: "yolov8_base"
-    enabled: true
-    model_path: "models/yolov8_windshield.pt"
-    weight: 1.0
-    
-  - name: "yolov11_improved"
-    enabled: true
-    model_path: "models/yolov11_windshield.pt"
-    weight: 1.5  # Higher weight if more accurate
-    
-  - name: "yolov12_latest"
-    enabled: true
-    model_path: "models/yolov12_windshield.pt"
-    weight: 2.0  # Highest weight for best model
-```
-
-### Ensemble Settings
-
-```yaml
-ensemble:
-  method: "weighted"
-  nms_iou_threshold: 0.5
-  min_models_agreement: 2  # Require at least 2 models
-  confidence_threshold: 0.3
-```
-
-## 📝 Response Example
+All face detection endpoints return:
 
 ```json
 {
   "status": "success",
-  "windshield_detection": {
-    "detected": true,
-    "confidence": 0.89,
-    "method": "weighted",
-    "num_models": 3
-  },
-  "face_detection": {
-    "num_faces": 2,
-    "detection_time": 1.23
-  },
-  "saved": {
-    "filename": "face_20240115_123456",
-    "split": "train",
-    "num_faces": 2,
-    "windshield_detected": true
-  },
-  "dataset_stats": {
-    "total_images": 150,
-    "total_faces": 287,
-    "total_windshields": 142
-  }
+  "request_id": "unique-identifier",
+  "faces": [
+    {
+      "face_id": 0,
+      "image_url": "https://...",
+      "bbox": {
+        "x": 145,
+        "y": 89,
+        "width": 180,
+        "height": 240
+      }
+    }
+  ],
+  "original_image_url": "https://...",
+  "total_faces": 1
 }
 ```
 
-## 🐛 Troubleshooting
+## Storage Modes
 
-### No windshield detection
+### Media Manager (Cloud)
+- **Enabled by default** in `config.yaml`
+- Face crops uploaded to external service
+- URL-based requests: Original URL stored (not re-uploaded)
+- File uploads: Raw image + face crops uploaded
 
-- Check model paths in config
-- Verify models are enabled
-- Check YOLO installation: `pip install ultralytics`
+### Local Storage
+- Set `media_manager.enabled: false` in config
+- All images saved locally
+- Dataset ready for YOLO training
+- Can be downloaded as ZIP
 
-### Clarifai errors
+## Development
 
-- Verify API key in config
-- Check installation: `pip install clarifai-grpc`
-- Check API quota/rate limits
+### Project Structure
 
-### CUDA errors
+```
+face-detection-system/
+├── main.py                      # FastAPI application
+├── windshield_detector.py       # YOLO windshield detection
+├── clarifai_client.py          # Clarifai face detection
+├── dataset_manager.py          # Dataset management
+├── media_manager_client.py     # Media manager integration
+├── utils.py                    # Utility functions
+├── config.yaml                 # Configuration
+├── requirements.txt            # Python dependencies
+└── models/                     # YOLO model files
+    └── windshield_model.pt
+```
 
-- Set `device: "cpu"` in model config
-- Or install CUDA-compatible PyTorch
+### Adding New YOLO Models
 
-## 📄 License
+Edit `config.yaml`:
 
-For educational and development purposes.
+```yaml
+windshield_models:
+  - name: "model_1"
+    enabled: true
+    model_path: "models/windshield_model_1.pt"
+    model_type: "yolov8"
+    conf_threshold: 0.35
+    iou_threshold: 0.45
+    weight: 1.0
 
-## 🤝 Contributing
+  - name: "model_2"
+    enabled: true
+    model_path: "models/windshield_model_2.pt"
+    model_type: "yolov11"
+    conf_threshold: 0.4
+    weight: 1.2
+```
 
-Feel free to improve the ensemble methods, add new features, or optimize the detection pipeline!
+### Testing
+
+```bash
+# Test upload endpoint
+curl -X POST "http://localhost:8000/upload" \
+  -F "file=@test_images/car.jpg"
+
+# Test URL endpoint
+curl -X POST "http://localhost:8000/add-url" \
+  -H "Content-Type: application/json" \
+  -d '{"url": "https://picsum.photos/800/600"}'
+
+# Check health
+curl "http://localhost:8000/health"
+```
+
+## API Documentation
+
+Interactive API documentation available at:
+- **Swagger UI**: http://localhost:8000/docs
+- **ReDoc**: http://localhost:8000/redoc
+
+## Performance Tips
+
+1. **Batch Processing**: Use `/batch-urls` for multiple images
+2. **GPU Acceleration**: Configure YOLO models to use CUDA
+3. **Caching**: Consider implementing Redis for repeated URLs
+4. **Async Processing**: For large volumes, implement queue-based processing
+
+## Troubleshooting
+
+### YOLO Models Not Loading
+
+```bash
+# Install missing dependencies
+pip install huggingface_hub omegaconf
+
+# Verify model path in config.yaml
+models:
+  - model_path: "models/your_model.pt"
+```
+
+### Clarifai API Errors
+
+- Check API key in `config.yaml`
+- Verify internet connection
+- Check Clarifai API status
+
+### Media Manager Upload Failures
+
+- Verify `base_url` in config
+- Check network connectivity
+- Ensure media manager is accessible
+
+## License
+
+Proprietary - eTraffica
+
+## Support
+
+For issues and questions, contact: support@etraffica.com

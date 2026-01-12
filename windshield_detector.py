@@ -76,7 +76,7 @@ class WindshieldDetector:
                 self.models.append(model_info)
                 loaded_count += 1
                 
-                logger.info(f"✓ Loaded {model_type} model '{model_name}' (weight: {model_info['weight']})")
+                logger.info(f" Loaded {model_type} model '{model_name}' (weight: {model_info['weight']})")
                 
             except Exception as e:
                 logger.error(f"Failed to load model {model_cfg.get('name')}: {e}")
@@ -85,7 +85,7 @@ class WindshieldDetector:
         if loaded_count == 0:
             logger.warning("No windshield models were loaded successfully")
         else:
-            logger.info(f"✓ Loaded {loaded_count} windshield detection model(s)")
+            logger.info(f" Loaded {loaded_count} windshield detection model(s)")
             logger.info(f"Ensemble method: {self.ensemble_config.get('method', 'union')}")
     
     def is_available(self) -> bool:

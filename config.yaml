@@ -37,13 +37,21 @@ ensemble:
   min_models_agreement: 1  # Minimum models that must detect for acceptance
   confidence_threshold: 0.3  # Minimum confidence for final result
 
+# Media Manager Configuration
+media_manager:
+  enabled: true  # Set to false to save locally instead
+  base_url: "https://etraffica-media-manager.ngrok.app"
+  timeout: 30  # Request timeout in seconds
+
 # Dataset Configuration
 dataset:
   output_dir: "face_dataset"
   train_val_split: 0.8  # 80% train, 20% val
-  
-# Storage Directories
+  save_empty: false  # Save samples with no detected faces
+
+# Storage Directories (used when media_manager is disabled or for local backup)
 storage:
+  local_backup: false  # Keep local copies even when using media manager
   images_dir: "face_dataset/images"
   labels_dir: "face_dataset/labels"
   raw_images_dir: "face_dataset/raw_images"
